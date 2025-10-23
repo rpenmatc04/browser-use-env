@@ -249,7 +249,7 @@ async def test_press_letter_keys(browser_session, httpserver: HTTPServer):
 
 	import asyncio
 
-	await asyncio.sleep(0.5)
+	await asyncio.sleep(1.0)  # Increased for Docker environment
 
 	# Press letter keys
 	await page.press('a')
@@ -358,7 +358,7 @@ async def test_press_arrow_keys_game_simulation(browser_session, httpserver: HTT
 
 	import asyncio
 
-	await asyncio.sleep(0.5)
+	await asyncio.sleep(1.0)  # Increased for Docker environment
 
 	# Play the game with arrow keys (like 2048)
 	await page.press('ArrowLeft')
