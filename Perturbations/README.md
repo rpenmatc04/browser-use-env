@@ -1,8 +1,8 @@
 # Dockerfile Perturbation Tasks
 
-This directory holds five Dockerfile variants derived from the gold-standard
-image. **Every perturbation still builds successfully**, but each removes a
+This directory holds five Dockerfile variants derived from the gold-standard image. **Every perturbation still builds successfully**, but each removes a
 critical runtime dependency so that the canonical regression command
+
 `uv run pytest --numprocesses auto tests/ci` fails. An evaluation agent must
 enter the running container, install the missing pieces, and rerun the tests
 until they pass—without copying the reference Dockerfile.
