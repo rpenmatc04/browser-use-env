@@ -1,0 +1,22 @@
+# syntax=docker/dockerfile:1
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends \
+        nano \
+        nodejs \
+        npm \
+        wget \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+COPY . /workspace
+
+# Intentionally rely on pip instead of uv and install unnecessary tools.
+RUN pip install pipenv \
+    && pip install -e .
+
+CMD ["python", "DockerStarting/example_program.py"]
