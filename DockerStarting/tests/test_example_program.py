@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python <3.11 fallback
+    import tomli as tomllib  # type: ignore[no-redef]
 
 from DockerStarting import example_program as program
 
@@ -16,8 +22,17 @@ def test_browser_use_package_is_importable() -> None:
     assert program.is_browser_use_importable()
 
 
+def _expected_version() -> str:
+    try:
+        return version(program.PROJECT_NAME)
+    except PackageNotFoundError:
+        pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
+        data = tomllib.loads(pyproject.read_text())
+        return data["project"]["version"]
+
+
 def test_browser_use_version_matches_metadata() -> None:
-    assert program.browser_use_version() == version(program.PROJECT_NAME)
+    assert program.browser_use_version() == _expected_version()
 
 
 def test_expected_console_scripts_are_registered() -> None:

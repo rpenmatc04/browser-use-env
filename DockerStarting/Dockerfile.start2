@@ -19,4 +19,4 @@ COPY . /workspace
 RUN pip install pipenv \
     && pip install -e .
 
-CMD ["python", "DockerStarting/example_program.py"]
+CMD ["pytest", "-c", "DockerStarting/pytest.ini", "DockerStarting/tests", "-q"]

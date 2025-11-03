@@ -15,10 +15,18 @@ import shutil
 import sys
 from dataclasses import dataclass
 from importlib import import_module
-from importlib.metadata import entry_points, version
+from importlib.metadata import PackageNotFoundError, entry_points, version
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python <3.11 fallback
+    import tomli as tomllib  # type: ignore[no-redef]
+
 PROJECT_NAME = "browser-use"
+REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+PYPROJECT_PATH = REPOSITORY_ROOT / "pyproject.toml"
 
 
 @dataclass(frozen=True)
@@ -48,24 +56,67 @@ def is_browser_use_importable() -> bool:
         return True
 
 
+def _load_pyproject() -> Dict[str, Any]:
+    """Return the parsed ``pyproject.toml`` contents if the file exists."""
+
+    try:
+        data = PYPROJECT_PATH.read_bytes()
+    except FileNotFoundError:  # pragma: no cover - repository corruption
+        return {}
+    return tomllib.loads(data.decode("utf-8"))
+
+
+def _pyproject_metadata() -> Dict[str, Any]:
+    """Return the ``[project]`` table from ``pyproject.toml`` if available."""
+
+    pyproject = _load_pyproject()
+    project_section = pyproject.get("project")
+    if isinstance(project_section, dict):
+        return project_section
+    return {}
+
+
 def browser_use_version() -> str:
-    """Return the installed project version.
+    """Return the project version from package metadata or ``pyproject.toml``."""
 
-    The helper defers to ``importlib.metadata`` so that it works for both
-    editable installs as well as wheel based installations.
-    """
+    try:
+        return version(PROJECT_NAME)
+    except PackageNotFoundError:
+        metadata = _pyproject_metadata()
+        declared_version = metadata.get("version")
+        if isinstance(declared_version, str):
+            return declared_version
+        raise
 
-    return version(PROJECT_NAME)
+
+def _pyproject_scripts() -> List[str]:
+    """Return console script names declared in ``pyproject.toml``."""
+
+    metadata = _pyproject_metadata()
+    scripts = metadata.get("scripts")
+    if isinstance(scripts, dict):
+        return sorted(map(str, scripts.keys()))
+    return []
 
 
 def registered_console_scripts() -> List[str]:
-    """Return console scripts provided by the project."""
+    """Return console scripts provided by the project.
+
+    The helper first inspects the active Python environment to detect scripts
+    exposed by an installed distribution. If none are discovered it falls back
+    to the declarations in ``pyproject.toml`` so that local, editable checkouts
+    without installation are still supported.
+    """
 
     scripts: List[str] = []
     for ep in entry_points(group="console_scripts"):
         if ep.name.startswith("browser"):
             scripts.append(ep.name)
-    return sorted(set(scripts))
+
+    if scripts:
+        return sorted(set(scripts))
+
+    return _pyproject_scripts()
 
 
 def uv_available() -> bool:

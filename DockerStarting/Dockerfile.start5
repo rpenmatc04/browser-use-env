@@ -21,4 +21,4 @@ COPY DockerStarting /project/DockerStarting
 
 RUN uv pip install --system pytest
 
-CMD ["pytest", "-c", "DockerStarting/pytest.ini"]
+CMD ["pytest", "-c", "DockerStarting/pytest.ini", "DockerStarting/tests", "-q"]

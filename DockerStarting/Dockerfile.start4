@@ -21,4 +21,4 @@ COPY . /workspace
 # Create a virtual environment but never activate it.
 RUN uv sync
 
-CMD ["pytest", "-c", "DockerStarting/pytest.ini"]
+CMD ["pytest", "-c", "DockerStarting/pytest.ini", "DockerStarting/tests", "-q"]

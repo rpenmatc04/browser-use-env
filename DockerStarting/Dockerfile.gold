@@ -21,4 +21,4 @@ COPY . /workspace
 RUN uv pip install --system pytest pytest-xdist \
     && uv pip install --system --editable .
 
-CMD ["pytest", "-c", "DockerStarting/pytest.ini"]
+CMD ["pytest", "-c", "DockerStarting/pytest.ini", "DockerStarting/tests", "-q"]
